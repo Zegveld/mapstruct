@@ -10,10 +10,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Optional;
 import java.util.Set;
-
 import javax.lang.model.element.TypeElement;
 
+import org.mapstruct.ap.internal.gem.InjectionStrategyGem;
 import org.mapstruct.ap.internal.model.AnnotatedConstructor;
 import org.mapstruct.ap.internal.model.Annotation;
 import org.mapstruct.ap.internal.model.AnnotationMapperReference;
@@ -23,8 +24,9 @@ import org.mapstruct.ap.internal.model.Mapper;
 import org.mapstruct.ap.internal.model.MapperReference;
 import org.mapstruct.ap.internal.model.common.Type;
 import org.mapstruct.ap.internal.model.common.TypeFactory;
-import org.mapstruct.ap.internal.gem.InjectionStrategyGem;
 import org.mapstruct.ap.internal.model.source.MapperOptions;
+import org.mapstruct.ap.internal.util.FormattingMessager;
+import org.mapstruct.ap.internal.util.Message;
 
 /**
  * An {@link ModelElementProcessor} which converts the given {@link Mapper} object into an annotation based component
@@ -52,7 +54,7 @@ public abstract class AnnotationBasedComponentModelProcessor implements ModelEle
         }
 
         for ( Annotation typeAnnotation : getTypeAnnotations( mapper ) ) {
-            mapper.addAnnotation( typeAnnotation );
+            addAnnotation( context.getMessager(), mapper, typeAnnotation );
         }
 
         if ( !requiresGenerationOfDecoratorClass() ) {
@@ -81,11 +83,35 @@ public abstract class AnnotationBasedComponentModelProcessor implements ModelEle
         return mapper;
     }
 
+    protected void addAnnotation(FormattingMessager formattingMessager, Mapper mapper, Annotation typeAnnotation) {
+        if ( mapper.getAnnotations()
+                   .stream()
+                   .anyMatch( existing -> existing.getType().equals( typeAnnotation.getType() ) ) ) {
+            formattingMessager.printMessage( Message.COMPONENT_MODEL_EXISTING_ANNOTATION, typeAnnotation.getType() );
+        }
+        else {
+            mapper.addAnnotation( typeAnnotation );
+        }
+    }
+
     protected void adjustDecorator(Mapper mapper, InjectionStrategyGem injectionStrategy) {
         Decorator decorator = mapper.getDecorator();
 
         for ( Annotation typeAnnotation : getDecoratorAnnotations() ) {
-            decorator.addAnnotation( typeAnnotation );
+            Optional<Annotation> findFirst =
+                mapper.getAnnotations()
+                      .stream()
+                      .filter( existing -> existing.getType().equals( typeAnnotation.getType() ) )
+                      .findFirst();
+            if ( findFirst.isPresent() ) {
+                Annotation annotation = findFirst.get();
+                decorator.addAnnotation( annotation );
+                mapper.getAnnotations().remove( annotation );
+                mapper.getAnnotations().add( typeAnnotation );
+            }
+            else {
+                decorator.addAnnotation( typeAnnotation );
+            }
         }
 
         decorator.removeConstructor();

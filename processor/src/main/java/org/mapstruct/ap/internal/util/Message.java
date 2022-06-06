@@ -22,6 +22,7 @@ public enum Message {
     CONFIG_NOTE( "applying mapper configuration: %s.", Diagnostic.Kind.NOTE ),
     MESSAGE_MOVED_TO_MAPPER_ERROR( "%s Occured at '%s' in '%s'." ),
     MESSAGE_MOVED_TO_MAPPER_WARNING( "%s Occured at '%s' in '%s'.", Diagnostic.Kind.WARNING ),
+    COMPONENT_MODEL_EXISTING_ANNOTATION( "Automatic generated annotation \"%s\" is already present.", Diagnostic.Kind.NOTE),
 
     BEANMAPPING_CREATE_NOTE( "creating bean mapping method implementation for %s.", Diagnostic.Kind.NOTE ),
     BEANMAPPING_NO_ELEMENTS( "'nullValueMappingStrategy', 'nullValuePropertyMappingStrategy', 'resultType' and 'qualifiedBy' are undefined in @BeanMapping, define at least one of them." ),
