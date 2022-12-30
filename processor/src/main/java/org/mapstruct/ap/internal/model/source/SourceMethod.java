@@ -15,6 +15,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 
+import org.mapstruct.SubclassMappingInheritanceStrategy;
 import org.mapstruct.ap.internal.gem.ConditionGem;
 import org.mapstruct.ap.internal.gem.ObjectFactoryGem;
 import org.mapstruct.ap.internal.model.common.Accessibility;
@@ -87,6 +88,7 @@ public class SourceMethod implements Method {
         private IterableMappingOptions iterableMapping = null;
         private MapMappingOptions mapMapping = null;
         private BeanMappingOptions beanMapping = null;
+        private InheritConfigurationOptions inheritConfigurationOptions = null;
         private TypeUtils typeUtils;
         private TypeFactory typeFactory = null;
         private MapperOptions mapper = null;
@@ -142,6 +144,11 @@ public class SourceMethod implements Method {
 
         public Builder setBeanMappingOptions(BeanMappingOptions beanMapping) {
             this.beanMapping = beanMapping;
+            return this;
+        }
+
+        public Builder setInheritConfigurationOptions(InheritConfigurationOptions inheritConfigurationOptions) {
+            this.inheritConfigurationOptions = inheritConfigurationOptions;
             return this;
         }
 
@@ -216,6 +223,7 @@ public class SourceMethod implements Method {
                 iterableMapping,
                 mapMapping,
                 beanMapping,
+                inheritConfigurationOptions,
                 enumMappingOptions,
                 valueMappings,
                 subclassMappings,

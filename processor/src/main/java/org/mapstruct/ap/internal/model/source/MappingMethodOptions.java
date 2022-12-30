@@ -5,22 +5,25 @@
  */
 package org.mapstruct.ap.internal.model.source;
 
+import static org.mapstruct.ap.internal.model.source.MappingOptions.getMappingTargetNamesBy;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.lang.model.element.AnnotationMirror;
 
+import org.mapstruct.SubclassMappingInheritanceStrategy;
 import org.mapstruct.ap.internal.gem.CollectionMappingStrategyGem;
 import org.mapstruct.ap.internal.model.common.Type;
 import org.mapstruct.ap.internal.model.common.TypeFactory;
 import org.mapstruct.ap.internal.util.FormattingMessager;
 import org.mapstruct.ap.internal.util.Message;
 import org.mapstruct.ap.internal.util.accessor.Accessor;
-
-import static org.mapstruct.ap.internal.model.source.MappingOptions.getMappingTargetNamesBy;
 
 /**
  * Encapsulates all options specifiable on a mapping method
@@ -35,6 +38,7 @@ public class MappingMethodOptions {
         null,
         null,
         null,
+        null,
         Collections.emptyList(),
         Collections.emptySet(),
         null
@@ -45,6 +49,7 @@ public class MappingMethodOptions {
     private IterableMappingOptions iterableMapping;
     private MapMappingOptions mapMapping;
     private BeanMappingOptions beanMapping;
+    private InheritConfigurationOptions inheritConfigurationOptions;
     private EnumMappingOptions enumMappingOptions;
     private List<ValueMappingOptions> valueMappings;
     private boolean fullyInitialized;
@@ -55,6 +60,7 @@ public class MappingMethodOptions {
     public MappingMethodOptions(MapperOptions mapper, Set<MappingOptions> mappings,
                                 IterableMappingOptions iterableMapping,
                                 MapMappingOptions mapMapping, BeanMappingOptions beanMapping,
+                                InheritConfigurationOptions inheritConfigurationOptions,
                                 EnumMappingOptions enumMappingOptions,
                                 List<ValueMappingOptions> valueMappings,
                                 Set<SubclassMappingOptions> subclassMappings, SubclassValidator subclassValidator) {
@@ -63,6 +69,7 @@ public class MappingMethodOptions {
         this.iterableMapping = iterableMapping;
         this.mapMapping = mapMapping;
         this.beanMapping = beanMapping;
+        this.inheritConfigurationOptions = inheritConfigurationOptions;
         this.enumMappingOptions = enumMappingOptions;
         this.valueMappings = valueMappings;
         this.subclassMappings = subclassMappings;
@@ -135,7 +142,7 @@ public class MappingMethodOptions {
     }
 
     /**
-     * @return the {@code true}, iff the options have been fully initialized by applying all available inheritance
+     * @return the {@code true}, if the options have been fully initialized by applying all available inheritance
      * options
      */
     public boolean isFullyInitialized() {
@@ -204,11 +211,19 @@ public class MappingMethodOptions {
                 }
             }
 
-            if ( isInverse ) {
-                // normal inheritence of subclass mappings will result runtime in infinite loops.
-                List<SubclassMappingOptions> inheritedMappings = SubclassMappingOptions.copyForInverseInheritance(
-                                              templateOptions.getSubclassMappings(),
-                                              getBeanMapping() );
+            if ( allowsSubclassMappingInheritance( sourceMethod, isInverse ) ) {
+                List<SubclassMappingOptions> inheritedMappings;
+                // normal inheritance of subclass mappings will result runtime in infinite loops.
+                if (isInverse ) {
+                    inheritedMappings = SubclassMappingOptions.copyForInverseInheritance(
+                                                  templateOptions.getSubclassMappings(),
+                                                  getBeanMapping() );
+                }
+                else {
+                    inheritedMappings = SubclassMappingOptions.copyForForwardInheritance(
+                                                  templateOptions.getSubclassMappings(),
+                                                  getBeanMapping() );
+                }
                 addAllNonRedefined( sourceMethod, annotationMirror, inheritedMappings );
             }
 
@@ -230,6 +245,17 @@ public class MappingMethodOptions {
             // filter new mappings
             filterNestedTargetIgnores( mappings );
         }
+    }
+
+    private static boolean allowsSubclassMappingInheritance(SourceMethod sourceMethod, boolean isInverse) {
+        InheritConfigurationOptions inheritConfigurationOptions = sourceMethod.getOptions().getInheritConfigurationOptions();
+        return isInverse
+                        ? inheritConfigurationOptions.getInverseStrategy() == SubclassMappingInheritanceStrategy.INHERIT
+                        : inheritConfigurationOptions.getNormalStrategy() == SubclassMappingInheritanceStrategy.INHERIT;
+    }
+
+    private InheritConfigurationOptions getInheritConfigurationOptions() {
+        return inheritConfigurationOptions;
     }
 
     private void addAllNonRedefined(SourceMethod sourceMethod, AnnotationMirror annotationMirror,
@@ -366,6 +392,7 @@ public class MappingMethodOptions {
             options.iterableMapping,
             options.mapMapping,
             BeanMappingOptions.empty( options.beanMapping.next() ),
+            null,
             options.enumMappingOptions,
             options.valueMappings,
             Collections.emptySet(),

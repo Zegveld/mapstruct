@@ -130,7 +130,7 @@ public class SubclassMappingTest {
         HatchBack.class,
         InverseOrderSubclassMapper.class
     } )
-    void subclassMappingOverridesInverseInheritsMapping() {
+    void subclassMappingOverridesInverseInheritedMapping() {
         VehicleCollectionDto vehicleDtos = new VehicleCollectionDto();
         CarDto carDto = new CarDto();
         carDto.setMaker( "BenZ" );
@@ -141,6 +141,21 @@ public class SubclassMappingTest {
         assertThat( result.getVehicles() ) // remove generic so that test works.
             .extracting( vehicle -> (Class) vehicle.getClass() )
             .containsExactly( Car.class );
+    }
+
+    @ProcessorTest
+    @WithClasses( {
+        HatchBack.class,
+        InheritanceSubclassMapper.class
+    } )
+    void subclassMappingOverridesInheritedMapping() {
+        Bike vehicle = new Bike();
+
+        VehicleDto normal = InheritanceSubclassMapper.INSTANCE.map( vehicle );
+        VehicleDto inherited = InheritanceSubclassMapper.INSTANCE.mapInherited( vehicle );
+
+        assertThat( normal ).isInstanceOf( BikeDto.class );
+        assertThat( inherited ).isInstanceOf( CarDto.class );
     }
 
     @ProcessorTest

@@ -5,6 +5,8 @@
  */
 package org.mapstruct;
 
+import static org.mapstruct.SubclassMappingInheritanceStrategy.INHERIT;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -87,4 +89,11 @@ public @interface InheritInverseConfiguration {
      * @return The name of the inverse mapping method to inherit the mappings from.
      */
     String name() default "";
+
+    /**
+     * You can configure if subclasses should be inherited.
+     *
+     * @since 1.6
+     */
+    SubclassMappingInheritanceStrategy subclassMappingInheritanceStrategy() default INHERIT;
 }

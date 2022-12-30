@@ -19,6 +19,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 
+import org.mapstruct.InheritConfiguration;
 import org.mapstruct.ap.internal.gem.BeanMappingGem;
 import org.mapstruct.ap.internal.gem.ConditionGem;
 import org.mapstruct.ap.internal.gem.IterableMappingGem;
@@ -35,6 +36,7 @@ import org.mapstruct.ap.internal.model.common.Type;
 import org.mapstruct.ap.internal.model.common.TypeFactory;
 import org.mapstruct.ap.internal.model.source.BeanMappingOptions;
 import org.mapstruct.ap.internal.model.source.EnumMappingOptions;
+import org.mapstruct.ap.internal.model.source.InheritConfigurationOptions;
 import org.mapstruct.ap.internal.model.source.IterableMappingOptions;
 import org.mapstruct.ap.internal.model.source.MapMappingOptions;
 import org.mapstruct.ap.internal.model.source.MapperOptions;
@@ -312,6 +314,8 @@ public class MethodRetrievalProcessor implements ModelElementProcessor<Void, Lis
             subclassValidator
         );
 
+        InheritConfigurationOptions inheritConfigurationOptions = InheritConfigurationOptions.getInstanceOn( method );
+
         return new SourceMethod.Builder()
             .setExecutable( method )
             .setParameters( parameters )
@@ -319,6 +323,7 @@ public class MethodRetrievalProcessor implements ModelElementProcessor<Void, Lis
             .setExceptionTypes( exceptionTypes )
             .setMapper( mapperOptions )
             .setBeanMappingOptions( beanMappingOptions )
+            .setInheritConfigurationOptions( inheritConfigurationOptions )
             .setMappingOptions( mappingOptions )
             .setIterableMappingOptions( iterableMappingOptions )
             .setMapMappingOptions( mapMappingOptions )
